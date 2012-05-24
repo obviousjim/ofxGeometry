@@ -23,6 +23,7 @@ ofxGtsSurface::ofxGtsSurface() {
 			,gts_vertex_class()
 	);
 }
+
 ofxGtsSurface::~ofxGtsSurface() {
 	{
 		vector<GtsVertex*>::iterator it = vertices.begin();
@@ -47,9 +48,12 @@ ofxGtsSurface::~ofxGtsSurface() {
 	}
 }
 
+void ofxGtsSurface::setup(GtsSurface* s){
+    surface = s;
+}
 
 // level:  http://mathworld.wolfram.com/GeodesicDome.html
-void ofxGtsSurface::createSphere(guint level) {
+void ofxGtsSurface::setupSphere(int level) {
 	gts_surface_generate_sphere(surface, level);
 }
 
@@ -69,6 +73,10 @@ GtsFace* ofxGtsSurface::createFace(GtsEdge* e1, GtsEdge* e2, GtsEdge* e3) {
 	GtsFace* face = gts_face_new(surface->face_class, e1, e2, e3);
 	faces.push_back(face);
 	return face;
+}
+
+GtsSurface*	ofxGtsSurface::getGtsSurface(){
+    return surface;
 }
 
 vector<GtsVertex*> ofxGtsSurface::getFaceVertices(GtsFace* face) {

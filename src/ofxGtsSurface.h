@@ -12,11 +12,20 @@ class ofxGtsSurface {
 public: 
 	ofxGtsSurface();
 	~ofxGtsSurface();
+    
+    void setup(GtsSurface* surface);
+    void setupSphere(int level);
+    
+    void getUnion(ofxGtsSurface &source, ofxGtsSurface &result);
+	void getIntersection(ofxGtsSurface &source, ofxGtsSurface &result);
+	void getDifference(ofxGtsSurface &source, ofxGtsSurface &result);
+	void getReverseDifference(ofxGtsSurface &source, ofxGtsSurface &result);
+
 	GtsVertex* 		createVertex(float x, float y, float z);
 	GtsEdge* 		createEdge(GtsVertex* v1, GtsVertex* v2);
 	GtsFace* 		createFace(GtsEdge* e1, GtsEdge* e2, GtsEdge* e3);
-	void 			createSphere(guint level);
-	void			createLayers(int w, int h);
+//	void 			createSphere(guint level);
+//	void			createLayers(int w, int h);
 
 	
 	template<typename T>
@@ -27,14 +36,16 @@ public:
 	
 	GtsSurface*				getGtsSurface();
 	vector<GtsVertex*>		getFaceVertices(GtsFace* face);
-	vector<GtsVertex*> 		getVertices();
-	vector<GtsEdge*> 		getEdges();
+	vector<GtsVertex*>		getVertices();
+	vector<GtsEdge*>        getEdges();
 	vector<GtsTriangle*> 	getTriangles();
-	
-	GtsSurface* 		surface;
+
+  protected:
+    GtsSurface* 		surface;
 	vector<GtsVertex*> 	vertices;	
 	vector<GtsEdge*> 	edges;
 	vector<GtsFace*> 	faces;
+
 };
 
 template<typename T>
@@ -92,6 +103,3 @@ inline void ofxGtsSurface::updateVertexData(T& vd) {
 
 }
 
-inline GtsSurface* ofxGtsSurface::getGtsSurface() {
-	return surface;
-}

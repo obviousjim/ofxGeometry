@@ -20,7 +20,7 @@ ofxGtsSurface* ofxGts::createSurface() {
 
 ofxGtsSurface* ofxGts::createSphere(guint detail) {
 	ofxGtsSurface* s = createSurface();
-	s->createSphere(detail);
+	s->setupSphere(detail);
 	return s;
 }
 
