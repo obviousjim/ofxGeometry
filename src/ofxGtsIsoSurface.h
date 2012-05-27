@@ -30,10 +30,10 @@ private:
 	GtsCartesianGrid	grid;
 };
 
-template<typename T> 
-void ofxGtsIsoSurface::fillVertexData(T& vd) {
-	ofx_surface->fillVertexData(vd);
-}
+//template<typename T> 
+//void ofxGtsIsoSurface::fillVertexData(T& vd) {
+//	ofx_surface->fillVertexData(vd);
+//}
 
 inline void ofxGtsIsoSurface::setGridSize(float nDX, float nDY, float nDZ) {
 	grid.dx = nDX;

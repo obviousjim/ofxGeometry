@@ -21,10 +21,16 @@ class testApp : public ofBaseApp{
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
 
-    vector<ofVec3f> vertices;
-    vector<GtsVertex*> test_verts;
-    vector<GtsEdge*> edges;
-    vector<GtsTriangle*> triangles;
     
-    ofMesh m;
+    ofxGtsSurface* sphere;
+	ofxGts gts;
+    
+//    vector<ofVec3f> vertices;
+//    vector<GtsVertex*> test_verts;
+//    vector<GtsEdge*> edges;
+//    vector<GtsTriangle*> triangles;
+    
+    
+    
+    
 };

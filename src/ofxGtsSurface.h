@@ -3,17 +3,14 @@
 #include <vector>
 #include "ofMain.h"
 
-struct FloatArray {
-	float* data;
-};
 
-using namespace std;
 class ofxGtsSurface {
-public: 
+  public: 
 	ofxGtsSurface();
 	~ofxGtsSurface();
     
     void setup(GtsSurface* surface);
+    void setup(string filename);
     void setupSphere(int level);
     
     void getUnion(ofxGtsSurface &source, ofxGtsSurface &result);
@@ -21,33 +18,30 @@ public:
 	void getDifference(ofxGtsSurface &source, ofxGtsSurface &result);
 	void getReverseDifference(ofxGtsSurface &source, ofxGtsSurface &result);
 
+    void copyToMesh(ofMesh& mesh);
+    void copyVertices(vector<ofVec3f>& verts);
+
 	GtsVertex* 		createVertex(float x, float y, float z);
 	GtsEdge* 		createEdge(GtsVertex* v1, GtsVertex* v2);
 	GtsFace* 		createFace(GtsEdge* e1, GtsEdge* e2, GtsEdge* e3);
-//	void 			createSphere(guint level);
-//	void			createLayers(int w, int h);
-
-	
-	template<typename T>
-	void fillVertexData(T& vd);
-	
-	template<typename T>
-	void updateVertexData(T& vd);
-	
+		
 	GtsSurface*				getGtsSurface();
 	vector<GtsVertex*>		getFaceVertices(GtsFace* face);
 	vector<GtsVertex*>		getVertices();
 	vector<GtsEdge*>        getEdges();
 	vector<GtsTriangle*> 	getTriangles();
 
+    
   protected:
-    GtsSurface* 		surface;
-	vector<GtsVertex*> 	vertices;	
-	vector<GtsEdge*> 	edges;
-	vector<GtsFace*> 	faces;
+    bool loaded;
+    GtsSurface* 	surface;
+//	vector<GtsVertex*> 	vertices;	
+//	vector<GtsEdge*> 	edges;
+//	vector<GtsFace*> 	faces;
 
 };
 
+/*
 template<typename T>
 inline	void ofxGtsSurface::fillVertexData(T& vd) {	
 	// vertices
@@ -102,4 +96,6 @@ inline void ofxGtsSurface::updateVertexData(T& vd) {
 	}	
 
 }
+*/
+
 

@@ -64,14 +64,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A6E82329156D93CE00D92684 /* ofxGeometricTools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxGeometricTools.h; sourceTree = "<group>"; };
 		A6E8232A156D93CE00D92684 /* ofxGts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxGts.cpp; sourceTree = "<group>"; };
 		A6E8232B156D93CE00D92684 /* ofxGts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxGts.h; sourceTree = "<group>"; };
 		A6E8232C156D93CE00D92684 /* ofxGtsIsoSurface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxGtsIsoSurface.cpp; sourceTree = "<group>"; };
 		A6E8232D156D93CE00D92684 /* ofxGtsIsoSurface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxGtsIsoSurface.h; sourceTree = "<group>"; };
 		A6E8232E156D93CE00D92684 /* ofxGtsSurface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxGtsSurface.cpp; sourceTree = "<group>"; };
 		A6E8232F156D93CE00D92684 /* ofxGtsSurface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxGtsSurface.h; sourceTree = "<group>"; };
-		A6E82330156D93CE00D92684 /* ofxOpenNurbs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxOpenNurbs.h; sourceTree = "<group>"; };
 		A6E82401156D943800D92684 /* galloca.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = galloca.h; sourceTree = "<group>"; };
 		A6E82402156D943800D92684 /* garray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = garray.h; sourceTree = "<group>"; };
 		A6E82403156D943800D92684 /* gasyncqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gasyncqueue.h; sourceTree = "<group>"; };
@@ -203,14 +201,12 @@
 		A642821D1470C33B00A4CD8B /* src */ = {
 			isa = PBXGroup;
 			children = (
-				A6E82329156D93CE00D92684 /* ofxGeometricTools.h */,
-				A6E8232A156D93CE00D92684 /* ofxGts.cpp */,
 				A6E8232B156D93CE00D92684 /* ofxGts.h */,
-				A6E8232C156D93CE00D92684 /* ofxGtsIsoSurface.cpp */,
-				A6E8232D156D93CE00D92684 /* ofxGtsIsoSurface.h */,
-				A6E8232E156D93CE00D92684 /* ofxGtsSurface.cpp */,
+				A6E8232A156D93CE00D92684 /* ofxGts.cpp */,
 				A6E8232F156D93CE00D92684 /* ofxGtsSurface.h */,
-				A6E82330156D93CE00D92684 /* ofxOpenNurbs.h */,
+				A6E8232E156D93CE00D92684 /* ofxGtsSurface.cpp */,
+				A6E8232D156D93CE00D92684 /* ofxGtsIsoSurface.h */,
+				A6E8232C156D93CE00D92684 /* ofxGtsIsoSurface.cpp */,
 			);
 			name = src;
 			path = ../src;

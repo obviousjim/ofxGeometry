@@ -16,15 +16,18 @@ static void build_triangle_vector(gpointer data, vector<GtsTriangle*>* triangles
 
 
 ofxGtsSurface::ofxGtsSurface() {
-	surface = gts_surface_new(
-			 gts_surface_class()
-			,gts_face_class()
-			,gts_edge_class()
-			,gts_vertex_class()
-	);
+	surface = gts_surface_new(gts_surface_class(), 
+                             gts_face_class(),
+                             gts_edge_class(),
+                             gts_vertex_class()) ;
+    
+    cout << "gts constructor" << endl;
+    
+//    loaded = false;
 }
 
 ofxGtsSurface::~ofxGtsSurface() {
+    /*
 	{
 		vector<GtsVertex*>::iterator it = vertices.begin();
 		while(it != vertices.end()) {
@@ -46,10 +49,42 @@ ofxGtsSurface::~ofxGtsSurface() {
 			++it;
 		}
 	}
+    */
 }
 
 void ofxGtsSurface::setup(GtsSurface* s){
     surface = s;
+}
+
+void ofxGtsSurface::setup(string filename) {
+    
+	FILE * fptr;
+	GtsFile * fp;
+	
+	string filePath = ofToDataPath(filename);
+	
+	/* open first file */
+	if ((fptr = fopen (filePath.c_str(), "rt")) == NULL) {		
+		ofLog(OF_LOG_ERROR, "Cannot open file: " + filePath);
+		return;
+	}
+    
+	/* reads in first surface file */
+	surface = gts_surface_new(GTS_SURFACE_CLASS(gts_surface_class()), 
+								  GTS_FACE_CLASS(gts_nface_class()), 
+								  GTS_EDGE_CLASS(gts_nedge_class()), 
+								  GTS_VERTEX_CLASS(gts_nvertex_class()));
+	fp = gts_file_new(fptr);
+	if (0 != gts_surface_read (surface, fp)) {
+		ofLog(OF_LOG_ERROR, filePath + " is not a valid GTS surface file");
+		loaded = false;
+		gts_object_destroy(GTS_OBJECT(surface));
+	} else {
+		ofLog(OF_LOG_NOTICE, "Gts surface file read: " + filePath);
+		loaded = true;
+	}
+	gts_file_destroy (fp);
+	fclose (fptr);	
 }
 
 // level:  http://mathworld.wolfram.com/GeodesicDome.html
@@ -59,19 +94,19 @@ void ofxGtsSurface::setupSphere(int level) {
 
 GtsVertex* ofxGtsSurface::createVertex(float x, float y, float z) {
 	GtsVertex* v = gts_vertex_new(surface->vertex_class, x, y, z);
-	vertices.push_back(v);
+//	vertices.push_back(v);
 	return v;
 }
 
 GtsEdge* ofxGtsSurface::createEdge(GtsVertex* v1, GtsVertex* v2) {
 	GtsEdge* edge = gts_edge_new(surface->edge_class, v1, v2);
-	edges.push_back(edge);
+//	edges.push_back(edge);
 	return edge;
 }
 
 GtsFace* ofxGtsSurface::createFace(GtsEdge* e1, GtsEdge* e2, GtsEdge* e3) {
 	GtsFace* face = gts_face_new(surface->face_class, e1, e2, e3);
-	faces.push_back(face);
+//	faces.push_back(face);
 	return face;
 }
 
@@ -99,4 +134,54 @@ vector<GtsTriangle*> ofxGtsSurface::getTriangles() {
 	vector<GtsTriangle*> triangles;
 	gts_surface_foreach_face(surface, (GtsFunc) build_triangle_vector, &triangles);
 	return triangles;
+}
+
+void ofxGtsSurface::copyToMesh(ofMesh& mesh){
+    
+    copyVertices(mesh.getVertices());
+//    cout << "copied " << mesh.getVertices().size() << " verts" << endl;
+    
+    vector<GtsTriangle*> triangles = getTriangles();
+    vector<GtsVertex*> vertices = getVertices();
+//    cout << " we have " << vertices.size() << " gts verts  and " << triangles.size() << " gts triangles " << endl;
+    mesh.clearIndices();
+    for(int i = 0; i < triangles.size(); i++){
+        GtsTriangle* tri = triangles[i];
+        GtsVertex* a = NULL;
+		GtsVertex* b = NULL;
+		GtsVertex* c = NULL;
+        
+        gts_triangle_vertices(tri, &a, &b, &c);
+        for(int v = 0; v < mesh.getVertices().size(); v++){
+            if(a == NULL && b == NULL && c == NULL){
+                break;
+            }
+            
+            if(a == vertices[v]){
+                mesh.addIndex(v);
+                a = NULL;
+            }
+            if(b == vertices[v]){
+                mesh.addIndex(v);                
+                b = NULL;
+            }
+            if(c == vertices[v]){
+                mesh.addIndex(v);
+                c = NULL;
+            }
+        }        
+    }
+//    cout << "copied " << mesh.getIndices().size() << " Indices" << endl;
+}
+
+void ofxGtsSurface::copyVertices(vector<ofVec3f>& outverts){
+    outverts.clear();
+    vector<GtsVertex*> inverts = getVertices();
+    for(int i = 0; i < inverts.size(); i++){
+        outverts.push_back(ofVec3f(inverts[i]->p.x,
+                                   inverts[i]->p.y,
+                                   inverts[i]->p.z)); 
+    }
+    
+
 }
