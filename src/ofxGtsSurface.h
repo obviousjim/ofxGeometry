@@ -19,11 +19,17 @@ class ofxGtsSurface {
 	void getDifference(ofxGtsSurface &source, ofxGtsSurface &result);
 	void getReverseDifference(ofxGtsSurface &source, ofxGtsSurface &result);
 
+    void translate(ofVec3f translation);
+    void scale(float scale);
+    void scale(ofVec3f scale);
+    void rotate(float angle, ofVec3f axis);
+    void rotate(ofQuaternion rotation);
+    void rotate(float angle, ofVec3f axis, ofVec3f pivot);    
+    void applyMatrix(ofMatrix4x4 transform);
+    
     void copyToMesh(ofMesh& mesh);
     void copyVertices(vector<ofVec3f>& verts);
 
-    
-    
 	GtsVertex* 		createVertex(float x, float y, float z);
 	GtsEdge* 		createEdge(GtsVertex* v1, GtsVertex* v2);
 	GtsFace* 		createFace(GtsEdge* e1, GtsEdge* e2, GtsEdge* e3);
@@ -34,71 +40,27 @@ class ofxGtsSurface {
 	vector<GtsEdge*>        getEdges();
 	vector<GtsTriangle*> 	getTriangles();
 
-    
   protected:
     bool loaded;
     GtsSurface* 	surface;
-//	vector<GtsVertex*> 	vertices;	
-//	vector<GtsEdge*> 	edges;
-//	vector<GtsFace*> 	faces;
+    
+    /* The type of boolean operation */
+	enum BooleanOperation {
+		BOOLEAN_INTERSECTION, 
+		BOOLEAN_UNION, 
+		BOOLEAN_DIFFERENCE, 
+		BOOLEAN_REVERSE_DIFFERENCE
+	};
+	
+	/* Prepare for a boolean operation, checking the validity of the surface */
+	bool prepareBoolean(ofxGtsSurface &source);
+	/* Create the boolean surface */
+	void createBoolean(ofxGtsSurface &source, ofxGtsSurface &result, BooleanOperation operation);
+
+	GNode *tree1, *tree2;
+    GtsSurfaceInter * si;
+    gboolean is_open1, is_open2;
+    bool boolPerformed;
 
 };
-
-/*
-template<typename T>
-inline	void ofxGtsSurface::fillVertexData(T& vd) {	
-	// vertices
-	{
-		vector<GtsVertex*> tmp_vertices = getVertices();
-		vector<GtsVertex*>::iterator it = tmp_vertices.begin();
-		while(it != tmp_vertices.end()) {
-			GtsVertex* v = *it;
-//			vd.addVertex(v->p.x, v->p.y, v->p.z);
-			++it;
-		}	
-	}
-	
-	// triangles
-	{
-		GtsVertex* a = NULL;
-		GtsVertex* b = NULL;
-		GtsVertex* c = NULL;
-			
-		vector<GtsTriangle*> tmp_triangles = getTriangles();
-		vector<GtsTriangle*>::iterator it = tmp_triangles.begin();
-		while(it != tmp_triangles.end()) {
-			GtsTriangle* tri = *it;
-			
-			gts_triangle_vertices(tri, &a, &b, &c);
-			vd.addVertex(a->p.x, a->p.y, a->p.z);
-			vd.addVertex(b->p.x, b->p.y, b->p.z);
-			vd.addVertex(c->p.x, c->p.y, c->p.z);
-			++it;
-		}	
-	}
-}
-
-template<typename T>
-inline void ofxGtsSurface::updateVertexData(T& vd) {
-	vd.clear();
-	
-	GtsVertex* a = NULL;
-	GtsVertex* b = NULL;
-	GtsVertex* c = NULL;
-			
-	vector<GtsTriangle*> tmp_triangles = getTriangles();
-	vector<GtsTriangle*>::iterator it = tmp_triangles.begin();
-	while(it != tmp_triangles.end()) {
-		GtsTriangle* tri = *it;
-			
-		gts_triangle_vertices(tri, &a, &b, &c);
-		vd.addVertex(a->p.x, a->p.y, a->p.z);
-		vd.addVertex(b->p.x, b->p.y, b->p.z);
-		vd.addVertex(c->p.x, c->p.y, c->p.z);
-		++it;
-	}	
-
-}
-*/
-
 
