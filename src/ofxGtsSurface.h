@@ -43,7 +43,7 @@ class ofxGtsSurface {
   protected:
     bool loaded;
     GtsSurface* 	surface;
-    
+    GtsSurface*     temp;
     /* The type of boolean operation */
 	enum BooleanOperation {
 		BOOLEAN_INTERSECTION, 

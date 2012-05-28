@@ -41,6 +41,7 @@ ofxGtsSurface::ofxGtsSurface() {
 							  GTS_VERTEX_CLASS(gts_nvertex_class()));
     boolPerformed = false;
     loaded = false;
+    temp = NULL;
 }
 
 ofxGtsSurface::~ofxGtsSurface() {
@@ -67,6 +68,20 @@ ofxGtsSurface::~ofxGtsSurface() {
 		}
 	}
     */
+    if(loaded) {
+		/* destroy surfaces and intersection */
+		gts_object_destroy(GTS_OBJECT(surface));		
+		
+		if(boolPerformed) {
+            gts_object_destroy(GTS_OBJECT(temp));
+			gts_object_destroy(GTS_OBJECT(si));
+			
+			/* destroy bounding box trees (including bounding boxes) */
+			gts_bb_tree_destroy(tree1, true);
+			gts_bb_tree_destroy(tree2, true);  
+		}
+	}
+    
 }
 
 void ofxGtsSurface::setup(GtsSurface* s){
@@ -203,27 +218,26 @@ void ofxGtsSurface::copyVertices(vector<ofVec3f>& outverts){
 
 void ofxGtsSurface::translate(ofVec3f translation){
     applyMatrix(ofMatrix4x4::newTranslationMatrix(translation));
-    
 }
 
 void ofxGtsSurface::scale(float scale){
-    
+    applyMatrix(ofMatrix4x4::newScaleMatrix(ofVec3f(scale,scale,scale)));    
 }
 
 void ofxGtsSurface::scale(ofVec3f scale){
-
+    applyMatrix(ofMatrix4x4::newScaleMatrix(scale));
 }
 
 void ofxGtsSurface::rotate(float angle, ofVec3f axis){
-
+    applyMatrix(ofMatrix4x4::newRotationMatrix(angle, axis.x, axis.y, axis.z));
 }
 
 void ofxGtsSurface::rotate(ofQuaternion rotation){
-
+    applyMatrix(ofMatrix4x4::newRotationMatrix(rotation));
 }
 
 void ofxGtsSurface::rotate(float angle, ofVec3f axis, ofVec3f pivot){
-
+    //TODO ?
 }
 
 void ofxGtsSurface::applyMatrix(ofMatrix4x4 transform){
@@ -271,7 +285,7 @@ bool ofxGtsSurface::prepareBoolean(ofxGtsSurface &source) {
 	tree2 = gts_bb_tree_new(bboxes);
 	/* free list of bboxes */
 	g_slist_free (bboxes);
-	is_open2 = gts_surface_volume (source.surface) < 0. ? TRUE : FALSE;
+	is_open2 = gts_surface_volume (source.surface) < 0.;
 	
 	si = gts_surface_inter_new (gts_surface_inter_class (), 
 								surface, source.surface, tree1, tree2, is_open1, is_open2);
@@ -288,38 +302,52 @@ bool ofxGtsSurface::prepareBoolean(ofxGtsSurface &source) {
 
 void ofxGtsSurface::createBoolean(ofxGtsSurface &source, ofxGtsSurface &result, BooleanOperation operation) {
     
-	result.surface = gts_surface_new(GTS_SURFACE_CLASS(gts_surface_class()), 
-									 GTS_FACE_CLASS(gts_nface_class()), 
-									 GTS_EDGE_CLASS(gts_nedge_class()), 
-									 GTS_VERTEX_CLASS(gts_nvertex_class()));
+    if(temp == NULL){
+        temp = gts_surface_new(GTS_SURFACE_CLASS(gts_surface_class()), 
+                               GTS_FACE_CLASS(gts_nface_class()), 
+                               GTS_EDGE_CLASS(gts_nedge_class()), 
+                               GTS_VERTEX_CLASS(gts_nvertex_class()));
+    }
+    
 	switch(operation) {
 			
 		case BOOLEAN_INTERSECTION:
-			gts_surface_inter_boolean(si, result.surface, GTS_1_IN_2);
-			gts_surface_inter_boolean(si, result.surface, GTS_2_IN_1);
+			gts_surface_inter_boolean(si, temp, GTS_1_IN_2);
+			gts_surface_inter_boolean(si, temp, GTS_2_IN_1);
 			break;
 			
 		case BOOLEAN_UNION:
-			gts_surface_inter_boolean(si, result.surface, GTS_1_OUT_2);
-			gts_surface_inter_boolean(si, result.surface, GTS_2_OUT_1);
+			gts_surface_inter_boolean(si, temp, GTS_1_OUT_2);
+			gts_surface_inter_boolean(si, temp, GTS_2_OUT_1);
 			break;
 			
 		case BOOLEAN_DIFFERENCE:
-			gts_surface_inter_boolean(si, result.surface, GTS_1_OUT_2);
-			gts_surface_inter_boolean(si, result.surface, GTS_2_IN_1);
+			gts_surface_inter_boolean(si, temp, GTS_1_OUT_2);
+			gts_surface_inter_boolean(si, temp, GTS_2_IN_1);
 			gts_surface_foreach_face(si->s2, (GtsFunc)gts_triangle_revert, NULL);
 			gts_surface_foreach_face(source.surface, (GtsFunc)gts_triangle_revert, NULL);
 			break;
 			
 		case BOOLEAN_REVERSE_DIFFERENCE:
 			// TODO: Reverse difference can cause crashes, is there a way to catch them?
-			gts_surface_inter_boolean(si, result.surface, GTS_2_OUT_1);
-			gts_surface_inter_boolean(si, result.surface, GTS_1_IN_2);
+			gts_surface_inter_boolean(si, temp, GTS_2_OUT_1);
+			gts_surface_inter_boolean(si, temp, GTS_1_IN_2);
 			gts_surface_foreach_face(si->s1, (GtsFunc)gts_triangle_revert, NULL);
 			gts_surface_foreach_face(surface, (GtsFunc)gts_triangle_revert, NULL);
 			break;
 	}
     
+    if(result.surface != NULL){
+        gts_object_destroy(GTS_OBJECT(result.surface));		
+        result.surface = NULL;
+    }
+	result.surface = gts_surface_new(GTS_SURFACE_CLASS(gts_surface_class()), 
+									 GTS_FACE_CLASS(gts_nface_class()), 
+									 GTS_EDGE_CLASS(gts_nedge_class()), 
+									 GTS_VERTEX_CLASS(gts_nvertex_class()));
+
+    gts_surface_copy(result.surface, temp);
+    //result.surface = temp;
     result.loaded = true;	
 }
 
