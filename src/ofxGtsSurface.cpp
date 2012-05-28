@@ -16,10 +16,10 @@ static void build_triangle_vector(gpointer data, vector<GtsTriangle*>* triangles
 
 
 ofxGtsSurface::ofxGtsSurface() {
-	surface = gts_surface_new(gts_surface_class(), 
-                             gts_face_class(),
-                             gts_edge_class(),
-                             gts_vertex_class()) ;
+	surface = gts_surface_new(GTS_SURFACE_CLASS(gts_surface_class()), 
+							  GTS_FACE_CLASS(gts_nface_class()), 
+							  GTS_EDGE_CLASS(gts_nedge_class()), 
+							  GTS_VERTEX_CLASS(gts_nvertex_class()));
     
     cout << "gts constructor" << endl;
     
@@ -65,7 +65,7 @@ void ofxGtsSurface::setup(string filename) {
 	
 	/* open first file */
 	if ((fptr = fopen (filePath.c_str(), "rt")) == NULL) {		
-		ofLog(OF_LOG_ERROR, "Cannot open file: " + filePath);
+		ofLog(OF_LOG_ERROR, "ofxGtsSurface::setup(file) -- Cannot open file: " + filePath);
 		return;
 	}
     
@@ -85,6 +85,10 @@ void ofxGtsSurface::setup(string filename) {
 	}
 	gts_file_destroy (fp);
 	fclose (fptr);	
+}
+
+void ofxGtsSurface::setup(ofMesh& mesh){
+    //TODO::
 }
 
 // level:  http://mathworld.wolfram.com/GeodesicDome.html

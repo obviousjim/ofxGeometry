@@ -45,19 +45,17 @@ void testApp::update(){
 void testApp::draw(){
 
 	glPushMatrix();
-    glTranslatef(ofGetWidth()/2,ofGetHeight()/2,-50);
+    glTranslatef(ofGetWidth()/2,ofGetHeight()/2,-25);
     glRotatef(sin(ofGetElapsedTimef()*1.3)*180,0,1,0);
     glScalef(100,100,100);
     ofSetColor(255);
 
-        
     ofMesh m;
 	sphere->copyToMesh(m);
     m.drawWireframe();
     
     glEnd();
 	glPopMatrix();
-
 
 }
 

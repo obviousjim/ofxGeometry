@@ -11,6 +11,7 @@ class ofxGtsSurface {
     
     void setup(GtsSurface* surface);
     void setup(string filename);
+    void setup(ofMesh& mesh);
     void setupSphere(int level);
     
     void getUnion(ofxGtsSurface &source, ofxGtsSurface &result);
@@ -21,6 +22,8 @@ class ofxGtsSurface {
     void copyToMesh(ofMesh& mesh);
     void copyVertices(vector<ofVec3f>& verts);
 
+    
+    
 	GtsVertex* 		createVertex(float x, float y, float z);
 	GtsEdge* 		createEdge(GtsVertex* v1, GtsVertex* v2);
 	GtsFace* 		createFace(GtsEdge* e1, GtsEdge* e2, GtsEdge* e3);
