@@ -19,6 +19,9 @@ class ofxGtsSurface {
 	void getDifference(ofxGtsSurface &source, ofxGtsSurface &result);
 	void getReverseDifference(ofxGtsSurface &source, ofxGtsSurface &result);
 
+    ofVec3f centroid();
+    void centerAtOrigin();
+    
     void translate(ofVec3f translation);
     void scale(float scale);
     void scale(ofVec3f scale);
@@ -27,9 +30,10 @@ class ofxGtsSurface {
     void rotate(float angle, ofVec3f axis, ofVec3f pivot);    
     void applyMatrix(ofMatrix4x4 transform);
     
-    void copyToMesh(ofMesh& mesh);
-    void copyVertices(vector<ofVec3f>& verts);
-
+    void copyTo(vector<ofVec3f>& verts);    
+    void copyTo(ofMesh& mesh);
+    void copyTo(ofxGtsSurface* surface);
+    
 	GtsVertex* 		createVertex(float x, float y, float z);
 	GtsEdge* 		createEdge(GtsVertex* v1, GtsVertex* v2);
 	GtsFace* 		createFace(GtsEdge* e1, GtsEdge* e2, GtsEdge* e3);
@@ -43,7 +47,7 @@ class ofxGtsSurface {
   protected:
     bool loaded;
     GtsSurface* 	surface;
-    GtsSurface*     temp;
+    GtsSurface*     temp; //used for booleans
     /* The type of boolean operation */
 	enum BooleanOperation {
 		BOOLEAN_INTERSECTION, 

@@ -2,6 +2,11 @@
 #include "ofMain.h"
 
 
+static void removeFace(GtsFace* face, GtsSurface* removeFrom){
+    cout << "removing face " << face << endl;
+    return gts_surface_remove_face(removeFrom, face);
+}
+
 static ofVec3f toOf(GtsVertex* vec){
     return ofVec3f(vec->p.x,vec->p.y,vec->p.z);
 }
@@ -40,8 +45,11 @@ ofxGtsSurface::ofxGtsSurface() {
 							  GTS_EDGE_CLASS(gts_nedge_class()), 
 							  GTS_VERTEX_CLASS(gts_nvertex_class()));
     boolPerformed = false;
-    loaded = false;
+    loaded = true;
     temp = NULL;
+    tree1 = tree2 = NULL; 
+    si = NULL;
+
 }
 
 ofxGtsSurface::~ofxGtsSurface() {
@@ -86,6 +94,7 @@ ofxGtsSurface::~ofxGtsSurface() {
 
 void ofxGtsSurface::setup(GtsSurface* s){
     surface = s;
+    loaded = true;
 }
 
 void ofxGtsSurface::setup(string filename) {
@@ -117,10 +126,35 @@ void ofxGtsSurface::setup(string filename) {
 	}
 	gts_file_destroy (fp);
 	fclose (fptr);	
+    loaded = true;
 }
 
 void ofxGtsSurface::setup(ofMesh& mesh){
-    //TODO::
+    vector<GtsVertex*> verts;
+    for(int i = 0; i < mesh.getVertices().size(); i++){
+        verts.push_back(gts_vertex_new(gts_vertex_class(), mesh.getVertices()[i].x, mesh.getVertices()[i].y, mesh.getVertices()[i].z));
+    }
+    
+    for(int i = 0; i < mesh.getIndices().size(); i+=3){
+        GtsEdge* e1 = gts_edge_new(gts_edge_class(), verts[ mesh.getIndices()[i  ] ], verts[ mesh.getIndices()[i+1] ]);
+        GtsEdge* e2 = gts_edge_new(gts_edge_class(), verts[ mesh.getIndices()[i  ] ], verts[ mesh.getIndices()[i+2] ]);
+        GtsEdge* e3 = gts_edge_new(gts_edge_class(), verts[ mesh.getIndices()[i+1] ], verts[ mesh.getIndices()[i+2] ]);
+        GtsFace* face = gts_face_new(gts_face_class(), e1, e2, e3);
+        gts_surface_add_face(surface, face);
+    }
+    
+    
+    
+}
+
+ofVec3f ofxGtsSurface::centroid(){
+    GtsVector v;
+    gts_surface_center_of_mass(surface, v);
+    return ofVec3f(v[0],v[1],v[2]);
+}
+
+void ofxGtsSurface::centerAtOrigin(){
+    translate(-centroid());
 }
 
 // level:  http://mathworld.wolfram.com/GeodesicDome.html
@@ -129,7 +163,7 @@ void ofxGtsSurface::setupSphere(int level) {
 }
 
 GtsVertex* ofxGtsSurface::createVertex(float x, float y, float z) {
-	GtsVertex* v = gts_vertex_new(surface->vertex_class, x, y, z);
+ 	GtsVertex* v = gts_vertex_new(surface->vertex_class, x, y, z);
 //	vertices.push_back(v);
 	return v;
 }
@@ -172,9 +206,24 @@ vector<GtsTriangle*> ofxGtsSurface::getTriangles() {
 	return triangles;
 }
 
-void ofxGtsSurface::copyToMesh(ofMesh& mesh){
+void ofxGtsSurface::copyTo(ofxGtsSurface* target){
+    if(target->surface != NULL){
+        gts_object_destroy(GTS_OBJECT(target->surface));		
+        target->surface = NULL;
+    }
     
-    copyVertices(mesh.getVertices());
+	target->surface = gts_surface_new(GTS_SURFACE_CLASS(gts_surface_class()), 
+									 GTS_FACE_CLASS(gts_nface_class()), 
+									 GTS_EDGE_CLASS(gts_nedge_class()), 
+									 GTS_VERTEX_CLASS(gts_nvertex_class()));
+    
+    gts_surface_copy(target->surface, surface);
+    target->loaded = true;
+}
+
+void ofxGtsSurface::copyTo(ofMesh& mesh){
+    
+    copyTo(mesh.getVertices());
     
     vector<GtsTriangle*> triangles = getTriangles();
     vector<GtsVertex*> vertices = getVertices();
@@ -208,7 +257,7 @@ void ofxGtsSurface::copyToMesh(ofMesh& mesh){
 //    cout << "copied " << mesh.getIndices().size() << " Indices" << endl;
 }
 
-void ofxGtsSurface::copyVertices(vector<ofVec3f>& outverts){
+void ofxGtsSurface::copyTo(vector<ofVec3f>& outverts){
     outverts.clear();
     vector<GtsVertex*> inverts = getVertices();
     for(int i = 0; i < inverts.size(); i++){
@@ -250,28 +299,64 @@ bool ofxGtsSurface::prepareBoolean(ofxGtsSurface &source) {
 		return false;
 	}
 	
+    GtsSurface* self_inter;
 	if(!gts_surface_is_orientable(surface)) {
 		ofLog(OF_LOG_ERROR, "Gts surface is not an orientable manifold, could not perform boolean operation");
 		return false;
 	}
 	
-	if(gts_surface_is_self_intersecting(surface)) {
+    
+    self_inter = gts_surface_is_self_intersecting(surface);
+	if(self_inter) {
 		ofLog(OF_LOG_ERROR, "Gts surface self-intersects, could not perform boolean operation");
+//        gts_surface_foreach_face(self_inter, (GtsFunc)removeFace, surface);
 		return false;
 	}
 	
 	if(!gts_surface_is_orientable(source.surface)) {
-		ofLog(OF_LOG_ERROR, "Gts surface is not an orientable manifold, could not perform boolean operation");
+		ofLog(OF_LOG_ERROR, "Gts source surface is not an orientable manifold, could not perform boolean operation");
 		return false;
 	}
 	
-	if(gts_surface_is_self_intersecting(source.surface)) {
-		ofLog(OF_LOG_ERROR, "Gts surface self-intersects, could not perform boolean operation");
+    self_inter = gts_surface_is_self_intersecting(source.surface);
+	if(self_inter) {
+//        gts_surface_foreach_face(self_inter, (GtsFunc)removeFace, source.surface);
+		ofLog(OF_LOG_ERROR, "Gts source surface self-intersects, could not perform boolean operation");
 		return false;
 	}
 	
+    /*
+    if(si != NULL){
+        gts_object_destroy(GTS_OBJECT(si));
+        si = NULL;
+    }
+    
+    if(tree1 != NULL){
+        gts_bb_tree_destroy(tree1, true);
+        tree1 = NULL;
+    }
+    if(tree2 != NULL){
+        gts_bb_tree_destroy(tree2, true);
+        tree2 = NULL;
+    }
+    */
+        
+//    if(boolPerformed) {
+//        gts_object_destroy(GTS_OBJECT(si));
+//        
+//        /* destroy bounding box trees (including bounding boxes) */
+//        gts_bb_tree_destroy(tree1, true);
+//        gts_bb_tree_destroy(tree2, true);  
+//        boolPerformed = false;
+//    }
+
 	GSList *bboxes = NULL;
 	gts_surface_foreach_face(surface, (GtsFunc) prepend_triangle_bbox, &bboxes);
+    if(bboxes == NULL){
+        ofLogError("Gts bboxes is null");
+        return false;
+    }
+    
 	/* build bounding box tree for first surface */
 	tree1 = gts_bb_tree_new(bboxes);
 	/* free list of bboxes */
@@ -286,13 +371,14 @@ bool ofxGtsSurface::prepareBoolean(ofxGtsSurface &source) {
 	/* free list of bboxes */
 	g_slist_free (bboxes);
 	is_open2 = gts_surface_volume (source.surface) < 0.;
-	
-	si = gts_surface_inter_new (gts_surface_inter_class (), 
+	si = gts_surface_inter_new (gts_surface_inter_class(), 
 								surface, source.surface, tree1, tree2, is_open1, is_open2);
-	
+
+	boolPerformed = true;
+    
 	gboolean closed = TRUE;
 	gts_surface_inter_check(si, &closed);
-	boolPerformed = true;
+    
 	if(!closed) {
 		ofLog(OF_LOG_NOTICE, "Gts surface is not closed, could not perform boolean operation");
 		return false;
@@ -336,17 +422,19 @@ void ofxGtsSurface::createBoolean(ofxGtsSurface &source, ofxGtsSurface &result, 
 			gts_surface_foreach_face(surface, (GtsFunc)gts_triangle_revert, NULL);
 			break;
 	}
-    
-    if(result.surface != NULL){
-        gts_object_destroy(GTS_OBJECT(result.surface));		
-        result.surface = NULL;
-    }
+        
 	result.surface = gts_surface_new(GTS_SURFACE_CLASS(gts_surface_class()), 
 									 GTS_FACE_CLASS(gts_nface_class()), 
 									 GTS_EDGE_CLASS(gts_nedge_class()), 
 									 GTS_VERTEX_CLASS(gts_nvertex_class()));
 
     gts_surface_copy(result.surface, temp);
+    GtsSurface* self_inter = gts_surface_is_self_intersecting (result.surface);
+    if(self_inter){
+        ofLogError("ofxGtsSurface::createBoolean -- Resulting shape is self-intersecting");
+//        gts_surface_foreach_face(self_inter, (GtsFunc)removeFace, result.surface);
+    }
+
     //result.surface = temp;
     result.loaded = true;	
 }
